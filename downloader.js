@@ -13,7 +13,7 @@ let latest_match_id = start_match_id;
 let num_downloaded_files = 0;
 
 
-mkdir(save_path)
+mkdir(save_path, () => {})
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

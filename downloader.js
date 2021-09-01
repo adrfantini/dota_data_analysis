@@ -1,8 +1,8 @@
 
 const opendota_api_key = Math.random().toString(36).substr(2); // optional... actually using a random API key seems to work?
-const start_match_id = 6158112980;
+const start_match_id = 6162304188;
 const total_downloads = 20000;
-const delay_between_calls = 1000; //ms
+const delay_between_calls = 50; //ms
 const save_path = './data/matches/json/';
 
 
@@ -61,8 +61,8 @@ async function download_match(match_id, try_number = 0, try_max = 5) {
         data = {error: err};
     }
 
-    // Sometimes the response is OK, but it actually does not contain good data. We verify this looking at data.swagger
-    if (data.swagger) {
+    // Sometimes the response is OK, but it actually does not contain good data. We verify this looking at data.match_id
+    if (typeof(data.match_id) !== 'number') {
         data.error = data.error || 'unknown error';
     }
 

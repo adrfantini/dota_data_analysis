@@ -1,5 +1,5 @@
 
-const opendota_api_key = undefined; // optional
+const opendota_api_key = Math.random().toString(36).substr(2); // optional... actually using a random API key seems to work?
 const start_match_id = 6158112980;
 const total_downloads = 20000;
 const delay_between_calls = 1000; //ms

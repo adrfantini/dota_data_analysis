@@ -1,7 +1,7 @@
 
 const opendota_api_key = Math.random().toString(36).substr(2); // optional... actually using a random API key seems to work?
-const start_match_id = 6162304188;
-const total_downloads = 20000;
+const start_match_id = 6158079010;
+const total_downloads = 100000;
 const delay_between_calls = 50; //ms
 const save_path = './data/matches/json/';
 
@@ -22,7 +22,7 @@ function sleep(ms) {
 async function get_parsed_matches() {
     return opendota.getParsedMatches({less_than_match_id: latest_match_id}).then(matches => {
         if (!Array.isArray(matches) || matches.length < 1) {
-            return [];
+            throw new Error('Invalid response from getParsedMatches: ' + JSON.stringify(matches));
         }
 
         const match_ids = matches.map(m => m.match_id);
@@ -40,7 +40,8 @@ async function get_parsed_matches() {
 }
 
 async function download_matches(matches) {
-    for (match_id of matches) await download_match(match_id)
+    console.log('Downloading ' + JSON.stringify(matches));
+    for (match_id of matches) await download_match(match_id);
 }
 
 async function download_match(match_id, try_number = 0, try_max = 5) {
@@ -85,8 +86,15 @@ async function download_match(match_id, try_number = 0, try_max = 5) {
 }
 
 async function main() {
+    console.log('Start');
     while (num_downloaded_files < total_downloads) {
-        await get_parsed_matches().then(download_matches);
+        console.log('New batch');
+        await get_parsed_matches()
+            .then(download_matches)
+            .catch(err => {
+                console.log('Error: ' + err);
+                return sleep(delay_between_calls);
+            });
     }
 }
 

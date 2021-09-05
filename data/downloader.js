@@ -1,19 +1,19 @@
 
 const opendota_api_key = Math.random().toString(36).substr(2); // optional... actually using a random API key seems to work?
 const start_match_id = 6158079010;
-const total_downloads = 100000;
-const delay_between_calls = 50; //ms
-const save_path = './data/matches/json/';
+const total_downloads = 1000;
+const delay_between_calls = 1000; //ms
+const output_folder = './data/matches/json/original';
 
 
 const { OpenDota } = require("opendota.js");
 const opendota = new OpenDota(opendota_api_key);
-const { writeFile, existsSync, mkdir } = require('fs');
+const { writeFile, existsSync, mkdirSync } = require('fs');
 let latest_match_id = start_match_id;
 let num_downloaded_files = 0;
 
 
-mkdir(save_path, () => {})
+mkdirSync(output_folder, {recursive: true})
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -85,7 +85,7 @@ async function download_match(match_id, try_number = 0, try_max = 5) {
     await sleep(delay_between_calls);
 }
 
-async function main() {
+async function download() {
     console.log('Start');
     while (num_downloaded_files < total_downloads) {
         console.log('New batch');
@@ -98,4 +98,4 @@ async function main() {
     }
 }
 
-main();
+download();

@@ -3,7 +3,7 @@ const filter = process.argv[2]
 console.log('Applying filter "' + filter + '"')
 
 const { filterFunc } = require('./filters/' + filter + '.js');
-const { existsSync, mkdirSync, readdirSync, writeFileSync, readFileSync } = require('fs');
+const { existsSync, mkdirSync, readdirSync, readFileSync } = require('fs');
 const writeFile = require('fs').promises.writeFile;
 
 const input_folder = './matches/json/original';

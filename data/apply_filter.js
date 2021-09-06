@@ -1,9 +1,9 @@
-const filter = process.argv[2]
+const filter = process.argv[2];
 
-console.log('Applying filter "' + filter + '"')
+console.log('Applying filter "' + filter + '"');
 
 const { filterFunc } = require('./filters/' + filter + '.js');
-const { existsSync, mkdirSync, readdirSync, readFileSync } = require('fs');
+const { existsSync, mkdirSync, readdirSync, readFileSync, openSync, closeSync } = require('fs');
 const writeFile = require('fs').promises.writeFile;
 
 const input_folder = './matches/json/original';
@@ -30,10 +30,11 @@ const counters = {
 
 
 mkdirSync(output_folder, {recursive: true});
+mkdirSync(output_folder + '/excluded/', {recursive: true});
 
 const files = readdirSync(input_folder)
     .filter(file => file.endsWith('.json'))
-    .filter(f => !existsSync(output_folder + '/' + f));
+    .filter(f => !existsSync(output_folder + '/' + f) && !existsSync(output_folder + '/excluded/' + f));
 
 processFiles(shuffleArray(files));
 
@@ -51,7 +52,7 @@ function processFiles(files) {
     return Promise.allSettled(
         files.map(processFile)
     ).then((result) => {
-        console.log(`Done. Summary: ${JSON.stringify(counters)}`);
+        console.log(`\nDone. Summary: ${JSON.stringify(counters)}`);
 
         const errors = result.filter(p => p.status != "fulfilled").map(p => p.reason);
 
@@ -85,10 +86,12 @@ function processFile(filename, retry = true) {
     }
 
     let filtered;
-    
+
     try {
         filtered = filterFunc(json);
         if (! filtered) {
+            const filename_touch = output_folder + '/excluded/' + filename;
+            closeSync(openSync(filename_touch, 'w'));
             counters.filter_invalid++;
             updatePB();
             return;
@@ -105,7 +108,7 @@ function processFile(filename, retry = true) {
         .then(() => {
             counters.writeOK++;
             updatePB();
-            return {fn: filename}
+            return {fn: filename};
         })
         .catch((err) => {
             if (retry) {

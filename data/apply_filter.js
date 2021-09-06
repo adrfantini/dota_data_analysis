@@ -49,10 +49,12 @@ function processFiles(files) {
 
     console.log(`Start processing ${nFiles} files`);
 
-    return Promise.allSettled(
-        files.map(processFile)
-    ).then((result) => {
-        console.log(`\nDone. Summary: ${JSON.stringify(counters)}`);
+    const promises = [];
+    for (file of files) promises.push(processFile(file));
+
+    return Promise.allSettled(promises)
+    .then((result) => {
+        console.log(`\nDone. Summary:\n${JSON.stringify(counters)}`);
 
         const errors = result.filter(p => p.status != "fulfilled").map(p => p.reason);
 

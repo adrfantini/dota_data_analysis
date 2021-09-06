@@ -1,11 +1,11 @@
 
-const start_match_id = 6166410851;
-const total_downloads = 10000;
+const start_match_id = 6169534101;
+const total_downloads = 50000;
 const delay_between_calls_small = 50; //ms
 const parallel = true; // Downloads the matches in parallel batches of 100 (using promises). Only activate if you have a valid API key, otherwise it's too call-intensive
 const delay_between_calls_large = 2000; //ms
 const output_folder = './matches/json/original/';
-const download_timeout = 15000;
+const download_timeout = 20000;
 
 
 const { writeFileSync, writeFile, existsSync, mkdirSync, readFileSync } = require('fs');
@@ -46,7 +46,7 @@ async function get_parsed_matches() {
 async function download_matches(matches) {
     console.log('Downloading ' + JSON.stringify(matches));
     if (parallel) {
-        promises = [];
+        const promises = [];
         const timeout = new Promise((resolve, reject) => setTimeout(reject, download_timeout, 'Timeout'));
         for (match of matches) promises.push(Promise.race([download_match(match), timeout]));
 

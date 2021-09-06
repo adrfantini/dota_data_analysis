@@ -1,16 +1,20 @@
 
-const opendota_api_key = Math.random().toString(36).substr(2); // optional... actually using a random API key seems to work?
-const start_match_id = 6158079010;
-const total_downloads = 1000;
-const delay_between_calls = 1000; //ms
-const output_folder = './data/matches/json/original';
+const start_match_id = 6166410851;
+const total_downloads = 10000;
+const delay_between_calls_small = 50; //ms
+const parallel = true; // Downloads the matches in parallel batches of 100 (using promises). Only activate if you have a valid API key, otherwise it's too call-intensive
+const delay_between_calls_large = 2000; //ms
+const output_folder = './matches/json/original/';
+const download_timeout = 15000;
 
 
-const { OpenDota } = require("opendota.js");
-const opendota = new OpenDota(opendota_api_key);
-const { writeFile, existsSync, mkdirSync } = require('fs');
+const { writeFileSync, writeFile, existsSync, mkdirSync, readFileSync } = require('fs');
 let latest_match_id = start_match_id;
 let num_downloaded_files = 0;
+
+const opendota_api_key = readFileSync('./apikey').toString(); // Math.random().toString(36).substr(2); // optional: unset to not use the key. Actually using a random API key seems to work?
+const { OpenDota } = require("opendota.js");
+const opendota = new OpenDota(opendota_api_key);
 
 
 mkdirSync(output_folder, {recursive: true})
@@ -41,7 +45,21 @@ async function get_parsed_matches() {
 
 async function download_matches(matches) {
     console.log('Downloading ' + JSON.stringify(matches));
-    for (match_id of matches) await download_match(match_id);
+    if (parallel) {
+        promises = [];
+        const timeout = new Promise((resolve, reject) => setTimeout(reject, download_timeout, 'Timeout'));
+        for (match of matches) promises.push(Promise.race([download_match(match), timeout]));
+
+        const result = await Promise.allSettled(promises)
+        const errors = result.filter(p => p.status != "fulfilled").map(p => p.reason);
+
+        console.log(`Batch finished with ${errors.length} errors: ${JSON.stringify(errors)}`);
+        console.log(`Downloaded ${num_downloaded_files} files in total`);
+
+        await sleep(delay_between_calls_large);
+    } else {
+        for (match_id of matches) await download_match(match_id);
+    }
 }
 
 async function download_match(match_id, try_number = 0, try_max = 5) {
@@ -50,11 +68,13 @@ async function download_match(match_id, try_number = 0, try_max = 5) {
         return;
     }
 
-    const output_file = save_path + match_id + '.json';
+    const output_file = output_folder + match_id + '.json';
 
     if (existsSync(output_file)) return;
 
     let data;
+
+    // console.log('Downloading match ID ' + match_id);
 
     try {
         data = await opendota.getMatch(match_id);
@@ -69,20 +89,28 @@ async function download_match(match_id, try_number = 0, try_max = 5) {
 
     if (data.error) {
         console.log('Error downloading match ID ' + match_id + ': ' + data.error);
-        await sleep(delay_between_calls * 2);
+        await sleep(delay_between_calls_small * 2);
         return await download_match(match_id, try_number + 1);
     }
 
-    writeFile(
+    console.log('Writing ' + output_file);
+
+    let writeF = writeFile;
+
+    if (parallel) writeF = writeFileSync;
+
+    // console.log(`Downloading ${output_file}`);
+
+    writeF(
         output_file,
         JSON.stringify(data),
         err => { if (err) console.log('Error writing match ID ' + match_id + ': ' + err)}
     );
 
-    num_downloaded_files = num_downloaded_files + 1;
-    console.log('Downloaded [' + num_downloaded_files + ']: ' + match_id);
+    num_downloaded_files++;
+    // console.log('Downloaded [' + num_downloaded_files + ']: ' + match_id);
 
-    await sleep(delay_between_calls);
+    await sleep(delay_between_calls_small);
 }
 
 async function download() {
@@ -93,7 +121,7 @@ async function download() {
             .then(download_matches)
             .catch(err => {
                 console.log('Error: ' + err);
-                return sleep(delay_between_calls);
+                return sleep(delay_between_calls_small);
             });
     }
 }

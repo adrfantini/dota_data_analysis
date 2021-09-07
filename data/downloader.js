@@ -123,12 +123,16 @@ async function download() {
     console.log('Start');
     while (num_downloaded_files < total_downloads) {
         console.log('New batch');
-        await get_parsed_matches()
-            .then(download_matches)
-            .catch(err => {
-                console.log('Error: ' + err);
-                return sleep(delay_between_calls_small);
-            });
+        try {
+            await get_parsed_matches()
+                .then(download_matches)
+                .catch(err => {
+                    console.log('Error: ' + err);
+                    return sleep(delay_between_calls_small);
+                });
+        } catch (err) {
+            console.log('Error in get_parsed_matches: ' + err);
+        }
     }
 }
 

@@ -58,7 +58,13 @@ async function download_matches(matches) {
 
         await sleep(delay_between_calls_large);
     } else {
-        for (match_id of matches) await download_match(match_id);
+        for (match_id of matches) {
+            try {
+                await download_match(match_id);
+            } catch(err) {
+                console.log(`Error downloading match ID ${match_id}: ${err.stack || err}`);
+            }
+        }
     }
 }
 

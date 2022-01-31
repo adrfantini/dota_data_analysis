@@ -55,7 +55,7 @@ gg = ggplot(d2, aes(x = party, y = win_pctl * 100 - 50, label = sample_size)) +
         subtitle = "Point label: party sample size",
         x = "Party composition",
         y = "Winrate variation %",
-        caption = "Data collected over 56191 ranked and unranked games for patch 7.30"
+        caption = "Data collected over 56191 ranked and unranked games for patch 7.30. Source: opendota.com"
     ) +
     coord_flip()
 

@@ -50,7 +50,7 @@ function processFiles(files) {
     console.log(`Start processing ${nFiles} files`);
 
     const promises = [];
-    for (file of files) promises.push(processFile(file));
+    for (const file of files) promises.push(processFile(file));
 
     return Promise.allSettled(promises)
     .then((result) => {

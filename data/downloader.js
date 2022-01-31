@@ -1,6 +1,5 @@
-
-const start_match_id = 6169534101;
-const total_downloads = 50000;
+const start_match_id = 6186323321;
+const total_downloads = 100000;
 const delay_between_calls_small = 50; //ms
 const parallel = true; // Downloads the matches in parallel batches of 100 (using promises). Only activate if you have a valid API key, otherwise it's too call-intensive
 const delay_between_calls_large = 2000; //ms

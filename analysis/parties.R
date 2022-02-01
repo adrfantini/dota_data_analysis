@@ -43,20 +43,31 @@ d2 = inner_join(
     mutate(party = forcats::fct_reorder(party, win_pctl))
 
 gg = ggplot(d2, aes(x = party, y = win_pctl * 100 - 50, label = sample_size)) +
-    geom_point() +
     geom_segment(aes(x = party, xend = party, y = 0, yend = win_pctl * 100 - 50)) +
-    geom_text(aes(y = ifelse(
-        win_pctl * 100 - 50 > 0,
-        win_pctl * 100 - 50 + 0.1,
-        win_pctl * 100 - 50 - 0.1
-    ))) +
+    geom_point(aes(color = factor(nchar(as.vector(party)))), size=3) +
+    geom_text(aes(
+        y = ifelse(
+            win_pctl * 100 - 50 > 0,
+            win_pctl * 100 - 50 + 0.05,
+            win_pctl * 100 - 50 - 0.05
+        )
+    ), hjust = 'outward', size = 2) +
     labs(
         title = "Winrate by party composition",
-        subtitle = "Point label: party sample size",
+        subtitle = "Labels: party sample size",
         x = "Party composition",
         y = "Winrate variation %",
         caption = paste("Data collected over", length(files), "ranked and unranked games for patch 7.30. Source: opendota.com")
     ) +
-    coord_flip()
+    coord_flip() + 
+    scale_color_brewer('Party size:', palette = 'Set1') +
+    theme_grey(base_size = 7) +
+    scale_y_continuous(limits = c(-2,2), expand = c(0.02,0.02)) + 
+    theme(
+        legend.position = c(0.957, 0.05),
+        legend.justification = c(1, 0),
+        legend.direction = "vertical",
+        legend.key = element_blank()
+        )
 
-ggsave(paste0('outputs/', name, '/winrates.jpg'), plot = gg, width = 12, height = 9)
+ggsave(paste0('outputs/', name, '/winrates.jpg'), plot = gg, width = 6, height = 6)
